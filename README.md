@@ -2,7 +2,7 @@
 
 A fraud detection system for SADC (Southern African Development Community) region transactions, built with Apache Kafka, featuring real-time stream processing, multi-rule fraud detection, and comprehensive monitoring.
 
-## 📊 Project Overview
+## Project Overview
 
 This system simulates a real-time financial transaction processing pipeline with intelligent fraud detection capabilities. It processes transactions from 16 SADC countries, enriches data with user profiles and currency rates and applies fraud detection rules to identify suspicious activities.
 
@@ -121,15 +121,58 @@ home_country, home_city, fraud_flags, risk_score, risk_level
 - **Consumer Groups** - Load balancing and fault tolerance
 - **Columnar Storage** - Efficient analytics with Parquet
 
+## Monitoring Setup (Prometheus & Grafana)
+
+### Configuration Files
+
+- `prometheus/prometheus.yml` - Prometheus scraping configuration
+- `kafka/jmx/kafka-config.yml` - JMX exporter rules for Kafka metrics
+- `grafana/dashboards/*.json` - Pre-built Grafana dashboards
+
+### Installation Paths (for actual deployment)
+
+When running the system, use these actual paths:
+- **Prometheus**: `C:\Prometheus\prometheus-3.5.0.windows-amd64\`
+- **Kafka JMX**: `C:\Kafka\jmx\`
+- **Grafana**: `C:\Grafana\` (or your installation path)
+
+**Installation**:
+1. Download JMX exporter JAR
+```
+   wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.5.0/jmx_prometheus_javaagent-1.5.0.jar
+```
+
+2. Copy config to Kafka directory:
+```
+   copy kafka\jmx\kafka-config.yml C:\Kafka\jmx\
+```
+
+3. Start Kafka with JMX exporter:
+```
+   $env:KAFKA_OPTS="-javaagent:C:\Kafka\jmx\jmx_prometheus_javaagent-1.5.0.jar=8082:C:\Kafka\jmx\kafka-config.yml"
+   .\bin\windows\kafka-server-start.bat .\config\server.properties
+```
+
+4. Verify metrics: http://localhost:8082/metrics
+
+## Grafana Dashboards
+
+File: `grafana/dashboards/kafka-overview.json`
+
+**Installation**:
+1. Open Grafana: http://localhost:3000
+2. Go to **Dashboards** → **Import**
+3. Upload `grafana/dashboards/kafka_monitering_stats.json`
+4. Select Prometheus data source
+5. Click Import
 
 ## Future Enhancements
 
 - Add comprehensive unit tests (pytest)
-- Implement Prometheus metrics export
-- Add Grafana dashboards for monitoring
 - Machine learning-based fraud detection
 - Docker Compose setup for easy deployment
 - Real-time dashboard with WebSocket
 - Database persistence (PostgreSQL/MongoDB)
 - API for fraud investigation
 - Consumer lag monitoring
+
