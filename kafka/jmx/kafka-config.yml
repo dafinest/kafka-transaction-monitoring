@@ -1,0 +1,144 @@
+startDelaySeconds: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Broker Topic Metrics - Messages In/Out
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=MessagesInPerSec, topic=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_messagesin_total
+    type: COUNTER
+    labels:
+      topic: "$1"
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=BytesInPerSec, topic=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_bytesin_total
+    type: COUNTER
+    labels:
+      topic: "$1"
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=BytesOutPerSec, topic=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_bytesout_total
+    type: COUNTER
+    labels:
+      topic: "$1"
+
+  # Aggregate broker metrics (no topic label)
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_$1_total
+    type: COUNTER
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>(OneMinuteRate|FiveMinuteRate|FifteenMinuteRate|MeanRate)
+    name: kafka_server_brokertopicmetrics_$1
+    type: GAUGE
+
+  # Request Metrics
+  - pattern: kafka.network<type=RequestMetrics, name=RequestsPerSec, request=(.+), version=([0-9]+)><>Count
+    name: kafka_network_requestmetrics_requests_total
+    type: COUNTER
+    labels:
+      request: "$1"
+      version: "$2"
+
+  - pattern: kafka.network<type=RequestMetrics, name=RequestsPerSec, request=(.+)><>Count
+    name: kafka_network_requestmetrics_requests_total
+    type: COUNTER
+    labels:
+      request: "$1"
+
+  - pattern: kafka.network<type=RequestMetrics, name=TotalTimeMs, request=(.+)><>(\w+)
+    name: kafka_network_requestmetrics_totaltimems
+    type: GAUGE
+    labels:
+      request: "$1"
+      quantile: "$2"
+
+  # Partition Count
+  - pattern: kafka.server<type=ReplicaManager, name=PartitionCount><>Value
+    name: kafka_server_replicamanager_partitioncount
+    type: GAUGE
+
+  - pattern: kafka.server<type=ReplicaManager, name=LeaderCount><>Value
+    name: kafka_server_replicamanager_leadercount
+    type: GAUGE
+
+  - pattern: kafka.server<type=ReplicaManager, name=UnderReplicatedPartitions><>Value
+    name: kafka_server_replicamanager_underreplicatedpartitions
+    type: GAUGE
+
+  - pattern: kafka.server<type=ReplicaManager, name=IsrExpandsPerSec><>Count
+    name: kafka_server_replicamanager_isrexpands_total
+    type: COUNTER
+
+  - pattern: kafka.server<type=ReplicaManager, name=IsrShrinksPerSec><>Count
+    name: kafka_server_replicamanager_isrshrinks_total
+    type: COUNTER
+
+  # Controller Metrics
+  - pattern: kafka.controller<type=KafkaController, name=ActiveControllerCount><>Value
+    name: kafka_controller_activecontrollercount
+    type: GAUGE
+
+  - pattern: kafka.controller<type=KafkaController, name=OfflinePartitionsCount><>Value
+    name: kafka_controller_offlinepartitionscount
+    type: GAUGE
+
+  - pattern: kafka.controller<type=ControllerStats, name=LeaderElectionRateAndTimeMs><>Count
+    name: kafka_controller_stats_leaderelection_total
+    type: COUNTER
+
+  - pattern: kafka.controller<type=ControllerStats, name=UncleanLeaderElectionsPerSec><>Count
+    name: kafka_controller_stats_uncleanleaderelections_total
+    type: COUNTER
+
+  # Log Metrics
+  - pattern: kafka.log<type=LogFlushStats, name=LogFlushRateAndTimeMs><>Count
+    name: kafka_log_logflushstats_total
+    type: COUNTER
+
+  - pattern: kafka.log<type=Log, name=Size, topic=(.+), partition=(.+)><>Value
+    name: kafka_log_log_size
+    type: GAUGE
+    labels:
+      topic: "$1"
+      partition: "$2"
+
+  # Request Handler Metrics
+  - pattern: kafka.server<type=KafkaRequestHandlerPool, name=RequestHandlerAvgIdlePercent><>(\w+)
+    name: kafka_server_kafkarequesthandlerpool_requesthandleravgidlepercent
+    type: GAUGE
+
+  # Network Processor Metrics
+  - pattern: kafka.network<type=Processor, name=IdlePercent, networkProcessor=(.+)><>Value
+    name: kafka_network_processor_idlepercent
+    type: GAUGE
+    labels:
+      processor: "$1"
+
+  # Purgatory Metrics
+  - pattern: kafka.server<type=(.+), name=PurgatorySize, delayedOperation=(.+)><>Value
+    name: kafka_server_purgatory_size
+    type: GAUGE
+    labels:
+      type: "$1"
+      operation: "$2"
+
+  # Zookeeper Metrics
+  - pattern: kafka.server<type=SessionExpireListener, name=(.+)><>Count
+    name: kafka_server_sessionexpirelistener_$1_total
+    type: COUNTER
+
+  # Fetch/Produce Purgatory
+  - pattern: kafka.server<type=(Produce|Fetch)RequestPurgatory, name=PurgatorySize><>Value
+    name: kafka_server_requestpurgatory_size
+    type: GAUGE
+    labels:
+      type: "$1"
+
+  # Delayed Operations
+  - pattern: kafka.server<type=DelayedOperationPurgatory, name=PurgatorySize, delayedOperation=(.+)><>Value
+    name: kafka_server_delayedoperationpurgatory_size
+    type: GAUGE
+    labels:
+      operation: "$1"
+
+  # JVM metrics are auto-collected by the exporter, so we don't define them here
